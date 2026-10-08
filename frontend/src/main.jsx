@@ -1,0 +1,10 @@
+import React,{useState} from "react";
+import {createRoot} from "react-dom/client";
+import "./style.css";
+const API=import.meta.env.VITE_API_URL||"http://localhost:8000";
+function App(){
+const [q,setQ]=useState(""),[answer,setAnswer]=useState(""),[sources,setSources]=useState([]),[busy,setBusy]=useState(false),[file,setFile]=useState(null);
+async function upload(){if(!file)return;const fd=new FormData();fd.append("file",file);const r=await fetch(API+"/documents",{method:"POST",body:fd});alert(r.ok?"PDF indexed":"Upload failed");}
+async function ask(){if(!q.trim())return;setBusy(true);setAnswer("");setSources([]);const r=await fetch(API+"/query/stream",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question:q})});const reader=r.body.getReader(),dec=new TextDecoder();let buf="";while(true){const x=await reader.read();if(x.done)break;buf+=dec.decode(x.value,{stream:true});const events=buf.split("\n\n");buf=events.pop();for(const e of events){const line=e.split("\n").find(v=>v.startsWith("data: "));if(!line)continue;const d=line.slice(6);if(d==="[DONE]")continue;const p=JSON.parse(d);if(p.type==="token")setAnswer(a=>a+p.text);if(p.type==="answer")setAnswer(p.text);if(p.type==="sources")setSources(p.sources||[]);}}setBusy(false);}
+return <main><header><span>PRODUCTION RAG</span><h1>Enterprise AI Knowledge Assistant</h1><p>FastAPI · Redis · FAISS · Kubernetes · Prometheus · LLM Evaluation</p></header><section><b>Upload PDF</b><input type="file" accept="application/pdf" onChange={e=>setFile(e.target.files?.[0])}/><button onClick={upload}>Index PDF</button></section><section><textarea value={q} onChange={e=>setQ(e.target.value)} placeholder="Ask about your documents..."/><button disabled={busy} onClick={ask}>{busy?"Streaming...":"Ask AI"}</button><article>{answer||"Your grounded answer will appear here."}</article>{sources.length>0&&<aside><b>Sources</b>{sources.map(s=><div key={s.source+String(s.page)}>{s.source}{s.page?" · page "+s.page:""}</div>)}</aside>}</section></main>}
+createRoot(document.getElementById("root")).render(<App/>);
