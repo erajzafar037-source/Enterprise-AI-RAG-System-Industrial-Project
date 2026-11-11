@@ -89,3 +89,15 @@ Portfolio honesty: this repository is Kubernetes-ready and includes a key-free l
 Author: Eraj Zafar
 GitHub: https://github.com/erajzafar037-source
 LinkedIn: https://www.linkedin.com/in/eraj-zafar-945a4248/
+
+
+## Runtime and security notes
+
+- FastAPI runtime is implemented in `backend/app/main.py`; the Docker image starts `app.main:app`.
+- `/health`, `/health/live`, `/health/ready` and `/metrics` are provided for local operations and Kubernetes probes.
+- PDF uploads are restricted by extension, PDF signature and configured size limit. Temporary upload files are removed after indexing.
+- The vector index is currently in-memory and is rebuilt when a document is uploaded. Restarting the container clears the index; use a persistent vector store for multi-replica or durable deployments.
+- Redis caching is best-effort and isolated by top-k and a fresh document-index version.
+- Retrieved document text is treated as untrusted input in the LLM system instructions. This is a defense-in-depth measure, not a guarantee against prompt injection.
+- The key-free fallback is an evidence preview, not a generative model response.
+- This reference implementation has no user authentication, tenant isolation, malware scanning or durable document storage. Do not expose it to untrusted users or sensitive documents without adding those controls.
