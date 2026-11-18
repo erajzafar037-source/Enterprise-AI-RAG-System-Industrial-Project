@@ -64,6 +64,9 @@ Run the stack in `monitoring/`. Track request rate, latency, cache hits/misses, 
 
 ## Evaluation
 
+The bundled evaluator reports transparent expected-term coverage only; it is a smoke check, not a measure of factual correctness or groundedness. See [docs/evaluation-protocol.md](docs/evaluation-protocol.md) for a defensible evaluation plan covering retrieval, citations, safety and operations.
+
+
 Run: `python evaluation/evaluate.py evaluation/predictions.example.jsonl`.
 
 This starts with transparent term coverage. A mature production system should add retrieval recall@k, groundedness, answer relevance, human review and an LLM judge.
